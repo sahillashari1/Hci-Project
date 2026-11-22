@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><title>SkyCast – HCI Project Report</title>
+<style>
+body{font-family:"Times New Roman",serif;font-size:12pt;line-height:1.5;max-width:800px;margin:30px auto;padding:0 20px;color:#000}
+h1{font-size:20pt;margin-top:28px}h2{font-size:15pt;margin-top:24px;border-bottom:1px solid #999}h3{font-size:12.5pt}
+table{border-collapse:collapse;width:100%;margin:10px 0}td,th{border:1px solid #000;padding:5px 8px;vertical-align:top;font-size:11pt}th{background:#d9e2f3}
+.cover{text-align:center;padding-top:120px;page-break-after:always}
+.cover h1{font-size:26pt;margin:8px 0}.cover p{font-size:14pt;margin:8px 0}
+.pb{page-break-before:always}.shot{border:1px dashed #666;padding:14px;text-align:center;color:#555;margin:10px 0}
+.extra{background:#fff8dc;border:1px solid #c9a600;padding:8px 14px;margin-top:40px}
+</style></head><body>
+
+<div class="cover">
+<p><b>HUMAN-COMPUTER INTERACTION</b></p>
+<p>Individual Semester Project</p><br><br>
+<p>Project Title:</p>
+<h1>SkyCast – Smart Weather Dashboard</h1><br><br>
+<p><b>Student Name:</b> Sahil Lashari</p>
+<p><b>Program:</b> BS Computer Science</p>
+<p><b>Semester:</b> BSCS 2K24</p>
+<p><b>Course:</b> Human-Computer Interaction</p>
+</div>
+
+<h2>1. Introduction</h2>
+<p>SkyCast is a modern weather dashboard built as an individual semester project for the Human-Computer Interaction (HCI) course. It presents current weather, hourly forecasts, a seven-day outlook, a simulated weather map with insights, and a settings page. The application is built with HTML, CSS and JavaScript in a single file (index.html) and runs locally in a web browser without installation, an internet connection or an API key. The focus of the project is the application of HCI design principles to create an interface that is clear, consistent, responsive and pleasant to use.</p>
+
+<h2>2. Problem Statement</h2>
+<p>Many weather applications are cluttered with advertisements, hide important information behind several menus, or use inconsistent layouts. Users who simply want to know "what is the weather now and what will it be later?" must often search through confusing screens. There is a need for a weather interface that shows the most important information at a glance, gives clear feedback, and lets users stay in control of units, theme and location.</p>
+
+<h2>3. Project Objectives</h2>
+<ul>
+<li>Design and develop a clean, modern and responsive weather dashboard.</li>
+<li>Apply at least five HCI principles visibly in the interface.</li>
+<li>Provide five connected screens: Home, Hourly, 7-Day, Weather Insights/Map and Settings.</li>
+<li>Allow users to search and switch cities, change units (°C/°F) and change theme (dark/light).</li>
+<li>Give immediate visual feedback for every user action.</li>
+<li>Work offline using simulated sample data.</li>
+</ul>
+
+<h2>4. Project Scope</h2>
+<p>The project covers the design and front-end implementation of the interface. It includes six sample cities (Karachi, Lahore, Islamabad, Dubai, London and New York), simulated hourly and daily forecasts, interactive charts, a simulated radar visualization and user preferences saved in the browser. It does not include a back-end server, a real weather API, user accounts or real push notifications.</p>
+
+<h2>5. Target Users</h2>
+<table>
+<tr><th>User group</th><th>Need</th></tr>
+<tr><td>Students and daily commuters</td><td>Quick check of temperature and rain before leaving home.</td></tr>
+<tr><td>Travellers</td><td>Compare weather in different cities.</td></tr>
+<tr><td>Older or non-technical users</td><td>Large text, clear labels and simple navigation.</td></tr>
+<tr><td>Outdoor workers and sports users</td><td>Hourly forecast, wind, UV index and rain probability.</td></tr>
+</table>
+
+<h2>6. Design Methodology</h2>
+<p>A user-centred design approach was followed in four stages:</p>
+<ol>
+<li><b>Requirement analysis:</b> identifying what information users need most (temperature, condition, rain, wind, forecast).</li>
+<li><b>Design:</b> planning the layout (sidebar navigation, card-based content), colour palette (dark navy, sky blue, white, purple accent) and glassmorphism card style.</li>
+<li><b>Implementation:</b> building the interface with HTML, CSS and JavaScript, using inline SVG icons and charts.</li>
+<li><b>Evaluation:</b> testing each feature against a test table and checking the interface against HCI heuristics.</li>
+</ol>
+
+<h2>7. System Features</h2>
+<ul>
+<li>Five fully working screens with active-state navigation.</li>
+<li>City search with suggestions, quick city chips and error messages for unknown cities.</li>
+<li>Live local clock and date for the selected city.</li>
+<li>Current temperature, condition, high/low, feels-like, humidity, wind, UV index, visibility, sunrise and sunset.</li>
+<li>24-hour forecast cards and smooth SVG temperature charts.</li>
+<li>7-day forecast with visual temperature range bars, rain probability and wind.</li>
+<li>Simulated animated weather radar with rain, cloud and temperature layers.</li>
+<li>Celsius/Fahrenheit conversion (also converts wind speed and visibility).</li>
+<li>Dark/light theme, notification preferences, default city, settings reset.</li>
+<li>Responsive layout for desktop, tablet and mobile.</li>
+</ul>
+
+<h2>8. Detailed Description of All 5 Screens</h2>
+<h3>Screen 1 – Home / Weather Dashboard</h3>
+<p>The main screen shows a large hero card with the city name, date, live time, current temperature, weather condition, animated weather icon, daily high/low and feels-like temperature. Beside it are cards for humidity, wind, UV index, visibility, sunrise and sunset. Below are the next-24-hours strip, a temperature trend chart, a sun-position arc and a compact seven-day outlook. The search bar and city chips are at the top.</p>
+<div class="shot">[Insert Screenshot 1: Home Dashboard]</div>
+<h3>Screen 2 – Hourly Forecast</h3>
+<p>Shows summary cards (warmest hour, coolest hour, highest rain chance, average wind), a horizontal scrollable timeline of hourly cards (icon, temperature, rain probability, wind), a smooth hourly temperature chart and a rain-probability bar chart.</p>
+<div class="shot">[Insert Screenshot 2: Hourly Forecast]</div>
+<h3>Screen 3 – 7-Day Forecast</h3>
+<p>Shows a weekly high/low temperature chart and seven detailed cards. Each card contains the day, date, icon, condition, maximum and minimum temperature, a visual temperature range bar, rain probability and wind speed.</p>
+<div class="shot">[Insert Screenshot 3: 7-Day Forecast]</div>
+<h3>Screen 4 – Weather Map / Insights</h3>
+<p>Contains an animated simulated radar drawn on an HTML canvas with three switchable layers (rain, cloud cover, temperature zones). City pins can be clicked to change city. Insight cards show UV level, humidity, wind, pressure, cloud cover, dew point, visibility and air quality, followed by an atmospheric summary. The screen is clearly labelled "SIMULATED DEMO" so that users are not misled.</p>
+<div class="shot">[Insert Screenshot 4: Weather Insights / Map]</div>
+<h3>Screen 5 – Settings</h3>
+<p>Contains a profile card, a °C/°F selector, a dark theme switch, notification switches (daily summary, rain alerts, severe weather), a default-city selector, a reset button and an About section.</p>
+<div class="shot">[Insert Screenshot 5: Settings]</div>
+
+<h2>9. HCI Principles Implemented</h2>
+<table>
+<tr><th>Principle</th><th>How it is implemented in SkyCast</th></tr>
+<tr><td><b>1. Visibility of System Status</b></td><td>The current temperature, condition and forecasts are always visible. A status badge in the top bar shows "Demo data · city · updated time". When a city is changed, a loading bar appears, the status dot turns amber and the content dims until the new data is displayed. The active navigation item is highlighted, and the live clock shows that the app is running.</td></tr>
+<tr><td><b>2. Consistency</b></td><td>The same font, colour palette, rounded glass cards, icon style, button style and spacing are used on all five screens. Navigation is always in the same place (sidebar on desktop, bottom bar on mobile). Temperatures and units are formatted the same way everywhere.</td></tr>
+<tr><td><b>3. Recognition Rather Than Recall</b></td><td>Every navigation button has both an icon and a text label. Weather conditions are shown with recognisable icons (sun, cloud, rain) and emoji labels (💧 rain, 🌬️ wind). City chips and a search suggestion list mean users never need to remember city names. UV levels use words and colours (Low, High) instead of only numbers.</td></tr>
+<tr><td><b>4. User Control and Freedom</b></td><td>Users can switch cities at any time, change °C/°F from the top bar or Settings, toggle dark/light theme, move freely between screens, choose a default city and reset all settings with one button. Nothing is forced or permanent.</td></tr>
+<tr><td><b>5. Feedback</b></td><td>Every action gives a response: toast messages appear after searching ("Showing weather for Dubai"), changing units, toggling theme or notifications, and changing radar layers. Unknown cities show a clear error message. Buttons and cards have hover and press effects; switches slide to show on/off state.</td></tr>
+</table>
+<p><b>Additional principles:</b> Error prevention and helpful error messages (empty or unknown search), aesthetic and minimalist design (information grouped into cards), accessibility (labels, keyboard focus outlines, "/" shortcut to focus search, reduced-motion support) and flexibility and efficiency of use (quick unit/theme buttons).</p>
+
+<h2>10. User Interface Design</h2>
+<ul>
+<li><b>Colour scheme:</b> dark navy gradient background with sky-blue and purple accents and white text, giving high contrast and a premium look. A light theme is also available.</li>
+<li><b>Glassmorphism:</b> semi-transparent cards with background blur, thin borders and soft shadows.</li>
+<li><b>Typography:</b> Segoe UI / system sans-serif fonts; large bold temperature, smaller muted labels for hierarchy.</li>
+<li><b>Icons and illustrations:</b> custom inline SVG weather icons with day and night versions.</li>
+<li><b>Layout:</b> CSS Grid and Flexbox; sidebar navigation on desktop becomes a bottom navigation bar on mobile.</li>
+<li><b>Motion:</b> screen fade-in, floating hero icon, hover lift on cards, loading bar and toast animations.</li>
+</ul>
+
+<h2>11. Usability Features</h2>
+<ul>
+<li>Information is grouped into cards so the most important data is seen at a glance.</li>
+<li>Responsive design works on phones, tablets and desktops.</li>
+<li>Search accepts partial names (for example "dub" finds Dubai).</li>
+<li>User preferences (unit, theme, notifications, default city) are saved in the browser's localStorage.</li>
+<li>Works fully offline with no installation.</li>
+<li>Honest labelling of simulated data on the status bar, map screen and settings page.</li>
+</ul>
+
+<h2>12. Tools and Technologies Used</h2>
+<table>
+<tr><th>Tool</th><th>Purpose</th></tr>
+<tr><td>HTML5</td><td>Structure of the screens and forms.</td></tr>
+<tr><td>CSS3</td><td>Layout (Grid/Flexbox), glassmorphism, gradients, animations, responsive design, dark/light themes using CSS variables.</td></tr>
+<tr><td>JavaScript (ES6)</td><td>Interactivity, data simulation, unit conversion, rendering, search, localStorage.</td></tr>
+<tr><td>SVG</td><td>Weather icons and charts.</td></tr>
+<tr><td>HTML Canvas</td><td>Animated simulated radar.</td></tr>
+<tr><td>Google Chrome</td><td>Testing and screenshots.</td></tr>
+<tr><td>VS Code / Notepad</td><td>Code editing.</td></tr>
+</table>
+
+<h2>13. System Testing</h2>
+<table>
+<tr><th>#</th><th>Test case</th><th>Action</th><th>Expected result</th></tr>
+<tr><td>1</td><td>Open application</td><td>Open index.html in Chrome</td><td>Home dashboard for Karachi loads with welcome message.</td></tr>
+<tr><td>2</td><td>Navigation</td><td>Click Hourly, 7-Day, Insights, Settings, Home</td><td>Correct screen opens and its menu item is highlighted.</td></tr>
+<tr><td>3</td><td>City search (valid)</td><td>Type "Dubai" and press Search</td><td>Loading bar appears, then all screens show Dubai data and a confirmation message.</td></tr>
+<tr><td>4</td><td>City search (partial)</td><td>Type "lah"</td><td>Lahore is displayed.</td></tr>
+<tr><td>5</td><td>City search (invalid)</td><td>Type "Paris"</td><td>Error message explains the city is not in the demo dataset.</td></tr>
+<tr><td>6</td><td>Empty search</td><td>Press Search with empty box</td><td>Message asks the user to type a city name.</td></tr>
+<tr><td>7</td><td>City chips</td><td>Click "London"</td><td>London weather is shown and chip becomes active.</td></tr>
+<tr><td>8</td><td>Temperature unit</td><td>Click °C/°F button</td><td>All temperatures, charts, wind and visibility convert; message confirms.</td></tr>
+<tr><td>9</td><td>Theme toggle</td><td>Click theme button or Settings switch</td><td>Interface switches between dark and light.</td></tr>
+<tr><td>10</td><td>Notification switches</td><td>Toggle each switch in Settings</td><td>Switch slides and a confirmation message appears.</td></tr>
+<tr><td>11</td><td>Default city</td><td>Select a city in Settings and reload page</td><td>Chosen city loads at start.</td></tr>
+<tr><td>12</td><td>Radar layers</td><td>Click Rain, Cloud, Temperature layers</td><td>Radar visualization changes accordingly.</td></tr>
+<tr><td>13</td><td>Radar pins</td><td>Click a city pin on the radar</td><td>The city changes.</td></tr>
+<tr><td>14</td><td>Hover effect</td><td>Move mouse over cards</td><td>Cards lift and brighten.</td></tr>
+<tr><td>15</td><td>Responsive design</td><td>Resize window / open mobile view</td><td>Layout adapts; bottom navigation appears on small screens.</td></tr>
+<tr><td>16</td><td>Reset</td><td>Click Reset in Settings</td><td>°C, dark theme and Karachi restored.</td></tr>
+<tr><td>17</td><td>Offline use</td><td>Disconnect internet and open file</td><td>Application works fully.</td></tr>
+</table>
+
+<h2>14. Limitations</h2>
+<ul>
+<li><b>All weather information is simulated demo data.</b> It is generated by formulas and sample values stored in the code. It is <b>not live data</b> and is not obtained from any real weather API or weather service.</li>
+<li>The application does not use a real weather API, so it cannot show real current conditions, real forecasts or real warnings.</li>
+<li>The weather map/radar is a schematic simulation, not a real geographic or satellite radar.</li>
+<li>Only six cities are available.</li>
+<li>Notification settings are saved but no real notifications are sent.</li>
+<li>No user accounts or database; preferences are stored only in the local browser.</li>
+<li>No formal usability testing with a large group of real users was performed.</li>
+</ul>
+
+<h2>15. Conclusion</h2>
+<p>SkyCast demonstrates how HCI principles can be applied to build a clear, attractive and easy-to-use weather interface. The application provides five working screens, interactive controls, helpful feedback and a responsive design using only HTML, CSS and JavaScript. Although it uses simulated data instead of a real weather API, the interface and structure are designed so that a real API could be connected in the future. The project helped to understand the importance of user-centred design, consistency, feedback and user control in software interfaces.</p>
+
+<h2>Future Work</h2>
+<ul><li>Connect a real weather API (for example Open-Meteo) for live data.</li><li>Use GPS location and more cities.</li><li>Real weather maps and push notifications.</li><li>User accounts, multiple languages and formal usability testing.</li></ul>
+
+<!-- ======================================================= -->
+<div class="extra pb">
+<h1>EXTRA 1 – Screenshot Checklist (not part of the report)</h1>
+<p>Open <b>index.html</b> in Chrome, maximise the window, press <b>Ctrl + Shift + S</b> (Windows: Win + Shift + S) and capture each of the following. Use Karachi unless stated.</p>
+<table>
+<tr><th>#</th><th>Screenshot</th><th>How to take it</th><th>Where to insert in report</th></tr>
+<tr><td>1</td><td>Home Dashboard</td><td>Click Home, wait for welcome message to vanish, capture the top of the page (hero card + stats). Optionally take a second shot scrolled down (chart).</td><td>Section 8, Screen 1</td></tr>
+<tr><td>2</td><td>Hourly Forecast</td><td>Click Hourly; capture timeline + chart.</td><td>Section 8, Screen 2</td></tr>
+<tr><td>3</td><td>7-Day Forecast</td><td>Click 7-Day; capture chart and day cards.</td><td>Section 8, Screen 3</td></tr>
+<tr><td>4</td><td>Weather Insights / Map</td><td>Click Insights; wait 2 seconds so the radar shows clouds/rain; capture radar and insight cards.</td><td>Section 8, Screen 4</td></tr>
+<tr><td>5</td><td>Settings</td><td>Click Settings; capture all cards.</td><td>Section 8, Screen 5</td></tr>
+<tr><td>6</td><td>City search</td><td>On Home type "Dubai" in the search box (before pressing Enter), capture; then press Enter and capture the Dubai result with the confirmation message.</td><td>Section 9, Principle 5 (Feedback) and Testing table (tests 3–5)</td></tr>
+<tr><td>7</td><td>Temperature unit toggle</td><td>Take one screenshot in °C, click the °C button to change to °F, take another showing the same screen in °F.</td><td>Section 9, Principle 4 (User Control) and Testing table (test 8)</td></tr>
+</table>
+<p><b>Optional extras:</b> light theme screenshot (Section 10), mobile view using Chrome DevTools (F12 → device icon) (Section 11), invalid search "Paris" error message (Section 9).</p>
+<p><b>Tip:</b> In Word, use Insert → Pictures, set width to 15 cm, and add a caption such as "Figure 1: Home Dashboard".</p>
+</div>
+
+<div class="extra pb">
+<h1>EXTRA 2 – Viva / Presentation Script (not part of the report)</h1>
+<h3>What is SkyCast?</h3>
+<p>"Good morning, sir/madam. My project is SkyCast, a smart weather dashboard. It shows the current weather, hourly forecast, seven-day forecast, a weather map and settings. It runs in the browser and is built with HTML, CSS and JavaScript."</p>
+<h3>Why did I choose this project?</h3>
+<p>"Everyone uses a weather app, so it is easy to understand and a good example for testing HCI ideas. It also lets me practise layout, colours, icons, feedback and user control."</p>
+<h3>What problem does it solve?</h3>
+<p>"Many weather apps are crowded and confusing. SkyCast shows the most important information clearly on one screen, so users can understand the weather quickly."</p>
+<h3>How did I design the interface?</h3>
+<p>"I used a dark blue gradient with sky-blue and purple colours, and glass-style cards with rounded corners. There is a sidebar for navigation, which becomes a bottom bar on mobile phones. I used big text for temperature and smaller text for details so the user sees the important data first."</p>
+<h3>Which HCI principles did I implement?</h3>
+<ol>
+<li><b>Visibility of system status:</b> the status bar, loading bar and highlighted menu tell the user what is happening.</li>
+<li><b>Consistency:</b> same colours, fonts, cards and icons on every screen.</li>
+<li><b>Recognition rather than recall:</b> icons with labels and city buttons, so the user does not have to remember anything.</li>
+<li><b>User control and freedom:</b> the user can change city, units and theme, and reset the settings at any time.</li>
+<li><b>Feedback:</b> pop-up messages and animations appear after every action, such as searching or changing units.</li>
+</ol>
+<h3>Which technologies did I use?</h3>
+<p>"HTML for structure, CSS for design and responsiveness, JavaScript for logic and interaction, SVG for icons and charts, and the canvas element for the radar animation."</p>
+<h3>Difference between simulated and real weather data?</h3>
+<p>"Real weather data comes from satellites, sensors and weather services through an API, and it changes every minute. My data is simulated: I wrote sample values and formulas in the code to make realistic-looking numbers. So the interface is real, but the weather numbers are demo data. I have written this clearly in the app and in the report. The radar is also a simulation."</p>
+<h3>What can I add in the future?</h3>
+<p>"A real weather API such as Open-Meteo, GPS location, more cities, real weather maps, real notifications, user accounts, more languages, and testing with real users."</p>
+<h3>Possible teacher questions</h3>
+<ul>
+<li><b>How does the °C/°F toggle work?</b> All data is stored in Celsius. When displaying, JavaScript converts with F = C × 9/5 + 32 and re-renders every screen.</li>
+<li><b>How are settings saved?</b> In the browser's localStorage.</li>
+<li><b>How does search work?</b> It compares the typed text with city names (exact, starts-with, then contains); if found it changes the city, otherwise it shows an error message.</li>
+<li><b>How is it responsive?</b> CSS Grid/Flexbox and media queries.</li>
+</ul>
+</div>
+</body></html>

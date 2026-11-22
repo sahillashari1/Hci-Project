@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SkyCast – Smart Weather Dashboard</title>
+<style>
+:root{
+  --bg1:#080d2b;--bg2:#1b1f63;--bg3:#0e3b73;
+  --card:rgba(255,255,255,.07);--card2:rgba(255,255,255,.11);--border:rgba(255,255,255,.14);
+  --text:#eef2ff;--muted:#a9b4dc;--accent:#5ac8fa;--accent2:#a78bfa;--good:#4ade80;--warn:#fbbf24;--bad:#fb7185;
+  --shadow:0 10px 30px rgba(0,0,0,.35);--sidebar:rgba(8,12,40,.55);--chartgrid:rgba(255,255,255,.1);
+}
+[data-theme="light"]{
+  --bg1:#dff1ff;--bg2:#e7e3ff;--bg3:#cfe8ff;
+  --card:rgba(255,255,255,.62);--card2:rgba(255,255,255,.85);--border:rgba(40,60,140,.14);
+  --text:#12204a;--muted:#55618a;--accent:#1d8fe0;--accent2:#7c5cf0;
+  --shadow:0 10px 30px rgba(40,60,140,.15);--sidebar:rgba(255,255,255,.55);--chartgrid:rgba(30,50,120,.12);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:"Segoe UI",system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;color:var(--text);min-height:100vh;
+  background:linear-gradient(135deg,var(--bg1),var(--bg2) 55%,var(--bg3));background-attachment:fixed;overflow-x:hidden;transition:background .4s,color .3s}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer;border:none;background:none}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:8px}
+.orb{position:fixed;border-radius:50%;filter:blur(90px);opacity:.35;pointer-events:none;z-index:0}
+.o1{width:380px;height:380px;background:#5b6cff;top:-100px;right:-80px}
+.o2{width:320px;height:320px;background:#22b8ff;bottom:-100px;left:180px}
+[data-theme="light"] .orb{opacity:.45}
+.app{display:grid;grid-template-columns:250px 1fr;min-height:100vh;position:relative;z-index:1}
+/* Sidebar */
+.side{position:sticky;top:0;height:100vh;padding:24px 16px;background:var(--sidebar);backdrop-filter:blur(18px);border-right:1px solid var(--border);display:flex;flex-direction:column;gap:22px}
+.brand{display:flex;align-items:center;gap:12px;padding:0 8px}
+.brand .logo{width:44px;height:44px;border-radius:14px;background:linear-gradient(135deg,#5ac8fa,#a78bfa);display:grid;place-items:center;box-shadow:0 6px 18px rgba(90,200,250,.4)}
+.brand b{font-size:1.25rem;letter-spacing:.3px;display:block}
+.brand small{color:var(--muted);font-size:.72rem}
+nav{display:flex;flex-direction:column;gap:6px}
+nav button{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;color:var(--muted);font-weight:500;transition:.2s;text-align:left}
+nav button svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+nav button:hover{background:var(--card);color:var(--text);transform:translateX(3px)}
+nav button.active{background:linear-gradient(135deg,rgba(90,200,250,.28),rgba(167,139,250,.28));color:var(--text);box-shadow:inset 0 0 0 1px var(--border)}
+.profile{margin-top:auto;display:flex;align-items:center;gap:10px;padding:12px;border-radius:16px;background:var(--card);border:1px solid var(--border)}
+.avatar{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#a78bfa,#5ac8fa);display:grid;place-items:center;font-weight:700;color:#fff;flex:none}
+.profile b{display:block;font-size:.92rem}.profile small{color:var(--muted);font-size:.75rem}
+/* Main */
+main{padding:22px 28px 40px;min-width:0}
+.top{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+#searchForm{flex:1;min-width:240px;display:flex;gap:8px;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:6px 6px 6px 14px;backdrop-filter:blur(14px);transition:.2s}
+#searchForm:focus-within{box-shadow:0 0 0 2px var(--accent)}
+#searchForm input{flex:1;background:none;border:none;outline:none;min-width:0}
+#searchForm input::placeholder{color:var(--muted)}
+.btn{padding:9px 18px;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-weight:600;transition:.2s;box-shadow:0 4px 14px rgba(90,200,250,.3)}
+.btn:hover{transform:translateY(-2px);filter:brightness(1.1)}
+.btn:active{transform:scale(.97)}
+.btn.ghost{background:var(--card);color:var(--text);box-shadow:none;border:1px solid var(--border)}
+.iconbtn,.unitbtn{height:44px;min-width:44px;padding:0 12px;border-radius:14px;background:var(--card);border:1px solid var(--border);font-weight:600;transition:.2s;backdrop-filter:blur(14px)}
+.iconbtn:hover,.unitbtn:hover{background:var(--card2);transform:translateY(-2px)}
+.status{display:flex;align-items:center;gap:8px;padding:0 14px;height:44px;border-radius:14px;background:var(--card);border:1px solid var(--border);font-size:.82rem;color:var(--muted);white-space:nowrap}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--good);box-shadow:0 0 8px var(--good)}
+.busy .dot,.status.busy .dot{background:var(--warn);box-shadow:0 0 8px var(--warn);animation:pulse 1s infinite}
+@keyframes pulse{50%{opacity:.3}}
+.loadbar{height:3px;margin:12px 0 10px;border-radius:3px;overflow:hidden;background:transparent}
+.loadbar.on{background:var(--card)}
+.loadbar.on::after{content:"";display:block;height:100%;width:40%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:3px;animation:slide .7s ease-in-out infinite}
+@keyframes slide{from{margin-left:-40%}to{margin-left:100%}}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 14px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{padding:7px 15px;border-radius:999px;background:var(--card);border:1px solid var(--border);font-size:.85rem;color:var(--muted);white-space:nowrap;transition:.2s}
+.chip:hover{color:var(--text);transform:translateY(-2px)}
+.chip.active{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-color:transparent}
+.screen{display:none}
+.screen.active{display:block;animation:fade .45s ease}
+@keyframes fade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.content.busy{opacity:.45;filter:blur(1px);transition:.2s;pointer-events:none}
+h2.title{font-size:1.5rem;margin-bottom:2px}
+p.sub{color:var(--muted);margin-bottom:18px;font-size:.92rem}
+.card{background:var(--card);border:1px solid var(--border);border-radius:22px;padding:20px;backdrop-filter:blur(16px);box-shadow:var(--shadow);transition:transform .25s,background .25s,box-shadow .25s}
+.card:hover{transform:translateY(-4px);background:var(--card2)}
+.card h3{font-size:1rem;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.card h3 small{color:var(--muted);font-weight:400}
+.grid{display:grid;gap:16px}
+.hero{display:grid;grid-template-columns:1.25fr 1fr;gap:16px;margin-bottom:16px}
+.heroCard{position:relative;overflow:hidden;background:linear-gradient(135deg,rgba(90,200,250,.25),rgba(167,139,250,.22) 60%,rgba(255,255,255,.05));display:flex;flex-direction:column;justify-content:space-between;min-height:290px}
+.heroCard .loc{font-size:1.7rem;font-weight:700}
+.heroCard .meta{color:var(--muted);font-size:.9rem;margin-top:2px}
+.heroMain{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.bigTemp{font-size:5.2rem;font-weight:300;line-height:1;letter-spacing:-3px}
+.cond{font-size:1.2rem;font-weight:600}
+.hl{color:var(--muted);margin-top:6px}
+.floaty{animation:float 5s ease-in-out infinite;filter:drop-shadow(0 12px 22px rgba(0,0,0,.3))}
+@keyframes float{50%{transform:translateY(-10px)}}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.stat{display:flex;gap:12px;align-items:flex-start;padding:14px}
+.si{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,rgba(90,200,250,.3),rgba(167,139,250,.3));display:grid;place-items:center;font-size:1.2rem;flex:none}
+.stat .lbl{display:block;color:var(--muted);font-size:.78rem}
+.stat b{font-size:1.2rem}
+.stat small{display:block;color:var(--muted);font-size:.74rem;margin-top:2px}
+.bar{height:6px;border-radius:6px;background:var(--chartgrid);margin-top:6px;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:6px;background:linear-gradient(90deg,var(--accent),var(--accent2))}
+.strip{display:flex;gap:12px;overflow-x:auto;padding:6px 2px 12px;scroll-snap-type:x proximity}
+.strip::-webkit-scrollbar{height:6px}.strip::-webkit-scrollbar-thumb{background:var(--border);border-radius:6px}
+.hc{flex:0 0 92px;text-align:center;padding:14px 8px;border-radius:18px;background:var(--card);border:1px solid var(--border);scroll-snap-align:start;transition:.25s}
+.hc:hover{transform:translateY(-6px);background:var(--card2);box-shadow:var(--shadow)}
+.hc.now{background:linear-gradient(135deg,rgba(90,200,250,.35),rgba(167,139,250,.35))}
+.hc .h{font-size:.8rem;color:var(--muted)}.hc b{display:block;font-size:1.15rem;margin-top:4px}
+.hc .r{font-size:.74rem;color:var(--accent);margin-top:4px}
+.hc.big{flex-basis:128px}.hc.big .w{font-size:.72rem;color:var(--muted);margin-top:2px}
+.two{display:grid;grid-template-columns:1.5fr 1fr;gap:16px;margin-top:16px}
+.row{display:grid;grid-template-columns:70px 40px 1fr 54px;gap:10px;align-items:center;padding:9px 4px;border-bottom:1px solid var(--border)}
+.row:last-child{border:none}
+.row .d{font-weight:600}.row .rn{font-size:.8rem;color:var(--accent);text-align:right}
+.range{position:relative;height:8px;border-radius:8px;background:var(--chartgrid)}
+.range i{position:absolute;top:0;bottom:0;border-radius:8px;background:linear-gradient(90deg,#5ac8fa,#fbbf24,#fb7185)}
+.rangeLbl{display:flex;justify-content:space-between;font-size:.8rem;color:var(--muted);margin-bottom:5px}
+.dayGrid{grid-template-columns:repeat(auto-fill,minmax(210px,1fr))}
+.day{text-align:center}
+.day .dn{font-weight:700;font-size:1.05rem}.day .dd{color:var(--muted);font-size:.8rem;margin-bottom:6px}
+.day .cn{font-size:.88rem;margin:4px 0 10px}
+.day .temps{font-size:1.1rem;margin-bottom:8px}.day .temps span{color:var(--muted)}
+.day .mini{display:flex;justify-content:space-between;font-size:.8rem;color:var(--muted);margin-top:10px}
+.chartWrap svg{width:100%;height:auto;display:block}
+.chartWrap text{fill:var(--muted);font-size:12px}
+.legend{display:flex;gap:16px;font-size:.8rem;color:var(--muted);margin-top:6px;flex-wrap:wrap}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px}
+.pill{display:inline-block;padding:3px 10px;border-radius:999px;font-size:.72rem;font-weight:600;background:rgba(251,191,36,.2);color:var(--warn);border:1px solid rgba(251,191,36,.4)}
+.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px}
+.summary .card{padding:14px}.summary span{color:var(--muted);font-size:.78rem}.summary b{display:block;font-size:1.25rem;margin-top:2px}
+canvas#radar{width:100%;height:420px;border-radius:18px;display:block;cursor:pointer;background:#0a1740}
+.layers{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.mapgrid{display:grid;grid-template-columns:1.7fr 1fr;gap:16px}
+.insights{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;align-content:start}
+.insights .card{padding:14px}
+.note{font-size:.8rem;color:var(--muted);margin-top:10px;line-height:1.5}
+/* settings */
+.sets{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px}
+.setrow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+.setrow:last-child{border:none}.setrow small{display:block;color:var(--muted);font-size:.78rem}
+.seg{display:flex;background:var(--chartgrid);border-radius:12px;padding:3px}
+.seg button{padding:7px 16px;border-radius:10px;color:var(--muted);font-weight:600;transition:.2s}
+.seg button.on{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff}
+.sw{position:relative;width:50px;height:28px;border-radius:28px;background:var(--chartgrid);transition:.25s;flex:none}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:.25s;box-shadow:0 2px 6px rgba(0,0,0,.3)}
+.sw.on{background:linear-gradient(135deg,var(--accent),var(--accent2))}
+.sw.on::after{transform:translateX(22px)}
+select{background:var(--chartgrid);border:1px solid var(--border);border-radius:12px;padding:8px 12px;outline:none}
+select option{color:#111}
+.prof{display:flex;gap:16px;align-items:center}.prof .avatar{width:64px;height:64px;font-size:1.4rem}
+ul.about{list-style:none;color:var(--muted);font-size:.9rem;line-height:1.9}
+ul.about b{color:var(--text)}
+#toasts{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;gap:8px;z-index:50;align-items:center;pointer-events:none}
+.toast{background:rgba(20,26,70,.95);color:#fff;border:1px solid rgba(255,255,255,.2);padding:11px 18px;border-radius:14px;box-shadow:var(--shadow);animation:tin .3s ease,tout .4s ease 2.4s forwards;font-size:.9rem}
+.toast.err{border-color:var(--bad)}.toast.ok{border-color:var(--good)}
+@keyframes tin{from{opacity:0;transform:translateY(14px)}}
+@keyframes tout{to{opacity:0;transform:translateY(8px)}}
+@media(max-width:1080px){.hero,.two,.mapgrid{grid-template-columns:1fr}}
+@media(max-width:860px){
+  .app{grid-template-columns:1fr}
+  .side{position:fixed;top:auto;bottom:0;left:0;right:0;height:auto;flex-direction:row;padding:6px 8px;z-index:40;border-right:none;border-top:1px solid var(--border);justify-content:center}
+  .brand,.profile{display:none}
+  nav{flex-direction:row;width:100%;justify-content:space-around}
+  nav button{flex-direction:column;gap:2px;font-size:.68rem;padding:7px 8px;flex:1;align-items:center;text-align:center}
+  nav button:hover{transform:none}
+  main{padding:16px 14px 100px}
+  .bigTemp{font-size:4rem}
+  .status{display:none}
+  .row{grid-template-columns:56px 34px 1fr 44px}
+  canvas#radar{height:320px}
+  #toasts{bottom:84px}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="orb o1"></div><div class="orb o2"></div>
+<div class="app">
+  <aside class="side">
+    <div class="brand">
+      <div class="logo"><svg width="26" height="26" viewBox="0 0 64 64"><circle cx="24" cy="24" r="10" fill="#ffe27a"/><path d="M20 50h26a10 10 0 0 0 1-20 14 14 0 0 0-27-2 11 11 0 0 0 0 22z" fill="#fff"/></svg></div>
+      <div><b>SkyCast</b><small>Smart Weather Dashboard</small></div>
+    </div>
+    <nav id="nav" aria-label="Main navigation">
+      <button data-screen="home" class="active"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg><span>Home</span></button>
+      <button data-screen="hourly"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>Hourly</span></button>
+      <button data-screen="weekly"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span>7-Day</span></button>
+      <button data-screen="map"><svg viewBox="0 0 24 24"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/></svg><span>Insights</span></button>
+      <button data-screen="settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg><span>Settings</span></button>
+    </nav>
+    <div class="profile"><div class="avatar">SL</div><div><b>Sahil Lashari</b><small>BSCS 2K24 · HCI Project</small></div></div>
+  </aside>
+
+  <main>
+    <header class="top">
+      <form id="searchForm" autocomplete="off">
+        <span aria-hidden="true">🔍</span>
+        <input id="q" list="cityList" placeholder="Search city: Karachi, Lahore, Islamabad, Dubai, London…" aria-label="Search city">
+        <datalist id="cityList"></datalist>
+        <button class="btn" type="submit">Search</button>
+      </form>
+      <div class="status" id="status"><span class="dot"></span><span id="statusTxt">Demo data</span></div>
+      <button class="unitbtn" id="quickUnit" title="Switch °C / °F" aria-label="Switch temperature unit">°C</button>
+      <button class="iconbtn" id="quickTheme" title="Switch dark / light theme" aria-label="Switch theme">🌙</button>
+    </header>
+    <div class="loadbar" id="loadbar"></div>
+    <div class="chips" id="chips" aria-label="Quick city selection"></div>
+
+    <div class="content" id="content">
+      <section class="screen active" id="s-home"><div class="card" style="padding:28px;line-height:1.7"><h3 style="font-size:1.2rem">⏳ Loading SkyCast…</h3><p style="color:var(--muted)">If this message stays on screen, your device is <b>blocking JavaScript</b> – this happens when the file is opened in a <b>file preview</b> (WhatsApp, Files, Quick Look, email, Claude preview). Open <b>index.html</b> in a real browser (<b>Chrome on a computer</b>, or Safari/Chrome app) and it will work.</p><noscript><p style="color:#fb7185"><b>JavaScript is turned off in this browser.</b> Please enable it.</p></noscript></div></section>
+      <section class="screen" id="s-hourly"></section>
+      <section class="screen" id="s-weekly"></section>
+      <section class="screen" id="s-map"></section>
+      <section class="screen" id="s-settings"></section>
+    </div>
+  </main>
+</div>
+<div id="toasts" aria-live="polite"></div>
+
+<script>
+window.addEventListener("error",function(e){var d=document.getElementById("s-home");if(d)d.innerHTML='<div class="card" style="padding:24px"><h3>⚠️ SkyCast error</h3><p style="color:#fb7185;word-break:break-word">'+String(e.message)+' (line '+e.lineno+')</p><p style="color:var(--muted)">Please send this message to get it fixed.</p></div>';});
+</script>
+<script>
+"use strict";
+/* ============ DEMO DATA (simulated, not from a real weather API) ============ */
+const CITIES = {
+  "Karachi":  {country:"Pakistan",tz:5,base:26,amp:5,hum:58,wind:16,uv:7,vis:8,rise:"06:48",set:"17:46",press:1014,aqi:"Moderate",seed:1,
+    pat:["sunny","partly","sunny","haze","partly","sunny","sunny"],rainD:[2,5,3,8,12,4,2],dd:[1,0,1,2,0,-1,0],pos:[.30,.74]},
+  "Lahore":   {country:"Pakistan",tz:5,base:19,amp:7,hum:68,wind:8,uv:5,vis:3.5,rise:"06:46",set:"17:08",press:1017,aqi:"Unhealthy (sensitive)",seed:2,
+    pat:["haze","haze","partly","haze","cloudy","partly","sunny"],rainD:[5,8,15,10,30,12,5],dd:[0,1,0,-1,-2,0,1],pos:[.44,.42]},
+  "Islamabad":{country:"Pakistan",tz:5,base:16,amp:7,hum:55,wind:10,uv:5,vis:9,rise:"06:55",set:"17:12",press:1018,aqi:"Good",seed:3,
+    pat:["partly","sunny","cloudy","rain","cloudy","partly","sunny"],rainD:[10,5,25,65,40,15,5],dd:[0,1,-1,-3,-2,0,1],pos:[.46,.26]},
+  "Dubai":    {country:"UAE",tz:4,base:28,amp:5,hum:55,wind:14,uv:6,vis:10,rise:"06:35",set:"17:30",press:1015,aqi:"Moderate",seed:4,
+    pat:["sunny","sunny","partly","sunny","sunny","haze","sunny"],rainD:[0,0,5,0,0,3,0],dd:[0,1,0,1,2,1,0],pos:[.16,.66]},
+  "London":   {country:"United Kingdom",tz:0,base:9,amp:3,hum:82,wind:20,uv:1,vis:6,rise:"07:12",set:"16:08",press:1005,aqi:"Good",seed:5,
+    pat:["cloudy","rain","rain","cloudy","partly","rain","cloudy"],rainD:[40,75,70,35,20,65,45],dd:[0,-1,-1,0,1,-2,-1],pos:[.76,.16]},
+  "New York": {country:"USA",tz:-5,base:8,amp:4,hum:60,wind:17,uv:2,vis:10,rise:"06:46",set:"16:42",press:1020,aqi:"Good",seed:6,
+    pat:["partly","sunny","cloudy","rain","cloudy","sunny","partly"],rainD:[10,5,25,70,35,5,10],dd:[0,1,0,-2,-1,1,2],pos:[.88,.60]}
+};
+const CITY_NAMES = Object.keys(CITIES);
+const CONDS = {sunny:"Sunny",partly:"Partly Cloudy",cloudy:"Cloudy",rain:"Light Rain",storm:"Thunderstorms",haze:"Hazy"};
+const CLOUD = {sunny:10,partly:45,cloudy:85,rain:90,storm:95,haze:30};
+
+/* ============ STATE ============ */
+const state = {city:"Karachi",unit:"C",theme:"dark",screen:"home",layer:"rain",
+  notif:{daily:true,rain:true,severe:false},defaultCity:"Karachi",updated:null};
+try{ const s=JSON.parse(window.localStorage.getItem("skycast")||"null"); if(s){ Object.assign(state,s); state.screen="home"; if(!CITIES[state.city]) state.city="Karachi"; } }catch(e){}
+function save(){ try{ localStorage.setItem("skycast",JSON.stringify({city:state.city,unit:state.unit,theme:state.theme,notif:state.notif,defaultCity:state.defaultCity})); }catch(e){} }
+state.city=CITIES[state.defaultCity]?state.defaultCity:"Karachi";
+
+/* ============ HELPERS ============ */
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const pad=n=>String(n).padStart(2,"0");
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const mins=s=>{const p=s.split(":");return +p[0]*60+ +p[1];};
+const conv=c=>state.unit==="C"?c:c*9/5+32;
+const T=c=>Math.round(conv(c))+"°";
+const WS=k=>state.unit==="C"?Math.round(k)+" km/h":Math.round(k*0.621)+" mph";
+const VS=k=>state.unit==="C"?k+" km":(k*0.621).toFixed(1)+" mi";
+const fmtH=h=>((h+11)%12+1)+(h<12?" AM":" PM");
+function cityNow(c){ const d=new Date(Date.now()+c.tz*3600000); return {d,h:d.getUTCHours(),m:d.getUTCMinutes()}; }
+function isNight(c,h){ return h*60+30<mins(c.rise)||h*60+30>=mins(c.set); }
+
+function tempAt(c,abs){ const h=((abs%24)+24)%24, day=Math.floor(abs/24);
+  return c.base+c.amp*Math.sin((h-9)/24*2*Math.PI)+(c.dd[day%7]||0); }
+function hourly(c){
+  const n=cityNow(c), out=[];
+  for(let i=0;i<24;i++){
+    const abs=n.h+i, h=abs%24, day=Math.floor(abs/24);
+    out.push({i,h,label:i===0?"Now":fmtH(h),temp:tempAt(c,abs),cond:c.pat[day%7],night:isNight(c,h),
+      rain:Math.round(clamp(c.rainD[day%7]+10*Math.sin(abs*1.3+c.seed),0,100)),
+      wind:Math.max(2,c.wind+4*Math.sin(abs*.7+c.seed)+(h>=12&&h<=18?3:0))});
+  }
+  return out;
+}
+function daily(c){
+  const n=cityNow(c), out=[];
+  for(let i=0;i<7;i++){
+    const d=new Date(n.d.getTime()+i*86400000);
+    out.push({name:i===0?"Today":d.toLocaleDateString("en-GB",{weekday:"short",timeZone:"UTC"}),
+      date:d.toLocaleDateString("en-GB",{day:"numeric",month:"short",timeZone:"UTC"}),
+      cond:c.pat[i],hi:c.base+c.amp+c.dd[i],lo:c.base-c.amp+c.dd[i]*.6,rain:c.rainD[i],
+      wind:Math.max(3,c.wind+3*Math.sin(i*1.9+c.seed))});
+  }
+  return out;
+}
+function current(c){
+  const n=cityNow(c), abs=n.h+n.m/60, night=isNight(c,n.h), cond=c.pat[0];
+  const t=tempAt(c,abs);
+  const hs=[...Array(24).keys()].map(h=>tempAt(c,h));
+  return {n,t,cond,night,hi:Math.max(...hs),lo:Math.min(...hs),
+    feels:t+(c.hum-50)*.04-c.wind*.05+(c.uv>6?1:0)};
+}
+const uvLevel=u=>u<3?["Low","var(--good)"]:u<6?["Moderate","var(--warn)"]:u<8?["High","#fb923c"]:u<11?["Very High","var(--bad)"]:["Extreme","#c084fc"];
+
+/* ============ ICONS (inline SVG) ============ */
+function icon(type,night,s=56){
+  let rays=""; for(let i=0;i<8;i++){const a=i*Math.PI/4;
+    rays+=`<line x1="${32+Math.cos(a)*17}" y1="${32+Math.sin(a)*17}" x2="${32+Math.cos(a)*23}" y2="${32+Math.sin(a)*23}"/>`;}
+  const sun=`<circle cx="32" cy="32" r="11" fill="#ffd45a"/><g stroke="#ffd45a" stroke-width="3" stroke-linecap="round">${rays}</g>`;
+  const moon=`<path d="M42 8A24 24 0 1 0 56 44A19 19 0 0 1 42 8z" fill="#e6ecff"/>`;
+  const cloud=(f)=>`<path d="M18 50h28a10 10 0 0 0 1-20 14 14 0 0 0-27-2 11 11 0 0 0-2 22z" fill="${f}"/>`;
+  let g="";
+  switch(type){
+    case"sunny": g=night?moon:sun; break;
+    case"partly": g=(night?`<g transform="translate(-8,-10) scale(.7)">${moon}</g>`:`<g transform="translate(-10,-10) scale(.75)">${sun}</g>`)+cloud("#fff"); break;
+    case"cloudy": g=`<g transform="translate(10,-8) scale(.7)">${cloud("#aab6e2")}</g>`+cloud("#e4eaff"); break;
+    case"rain": g=cloud("#b4c1ee")+`<g stroke="#5ac8fa" stroke-width="3" stroke-linecap="round"><line x1="22" y1="54" x2="19" y2="60"/><line x1="33" y1="54" x2="30" y2="60"/><line x1="44" y1="54" x2="41" y2="60"/></g>`; break;
+    case"storm": g=cloud("#8d99cc")+`<polygon points="35,44 26,57 33,57 29,66 42,51 34,51" fill="#ffd45a"/>`; break;
+    case"haze": g=`<g opacity=".85" transform="translate(0,-6)">${night?moon:sun}</g><g stroke="#cbd5f5" stroke-width="3" stroke-linecap="round" opacity=".9"><line x1="12" y1="52" x2="52" y2="52"/><line x1="18" y1="59" x2="46" y2="59"/></g>`; break;
+  }
+  return `<svg viewBox="0 0 64 64" width="${s}" height="${s}" role="img" aria-label="${CONDS[type]}">${g}</svg>`;
+}
+const condName=(t,night)=>t==="sunny"&&night?"Clear":CONDS[t];
+
+/* ============ CHART (SVG, hand-made) ============ */
+let chartUid=0;
+function smooth(p){ let d=`M${p[0][0]},${p[0][1]}`;
+  for(let i=0;i<p.length-1;i++){const p0=p[i-1]||p[i],p1=p[i],p2=p[i+1],p3=p[i+2]||p2;
+    d+=` C${p1[0]+(p2[0]-p0[0])/6},${p1[1]+(p2[1]-p0[1])/6} ${p2[0]-(p3[0]-p1[0])/6},${p2[1]-(p3[1]-p1[1])/6} ${p2[0]},${p2[1]}`;}
+  return d; }
+function chart(series,labels,opts={}){
+  const W=800,H=opts.h||240,pl=40,pr=18,pt=22,pb=32,n=labels.length,uid="g"+(++chartUid);
+  const all=series.flatMap(s=>s.vals), mn=Math.min(...all)-2, mx=Math.max(...all)+2;
+  const x=i=>pl+i*(W-pl-pr)/(n-1), y=v=>pt+(1-(v-mn)/(mx-mn))*(H-pt-pb);
+  let svg=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${opts.label||"Chart"}"><defs>`;
+  series.forEach((s,k)=>{svg+=`<linearGradient id="${uid}${k}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${s.color}" stop-opacity=".45"/><stop offset="1" stop-color="${s.color}" stop-opacity="0"/></linearGradient>`;});
+  svg+=`</defs>`;
+  for(let g=0;g<=4;g++){const v=mn+(mx-mn)*g/4,yy=y(v);
+    svg+=`<line x1="${pl}" x2="${W-pr}" y1="${yy}" y2="${yy}" stroke="var(--chartgrid)" stroke-dasharray="4 5"/><text x="${pl-8}" y="${yy+4}" text-anchor="end">${Math.round(v)}°</text>`;}
+  const step=Math.ceil(n/(opts.maxLabels||8));
+  labels.forEach((l,i)=>{ if(i%step===0) svg+=`<text x="${x(i)}" y="${H-8}" text-anchor="middle">${l}</text>`; });
+  series.forEach((s,k)=>{
+    const pts=s.vals.map((v,i)=>[x(i),y(v)]), d=smooth(pts);
+    if(s.area) svg+=`<path d="${d} L${x(n-1)},${H-pb} L${x(0)},${H-pb} Z" fill="url(#${uid}${k})"/>`;
+    svg+=`<path d="${d}" fill="none" stroke="${s.color}" stroke-width="3" stroke-linecap="round"/>`;
+    pts.forEach((p,i)=>{ svg+=`<circle cx="${p[0]}" cy="${p[1]}" r="${i===0&&opts.highlightFirst?7:4}" fill="${i===0&&opts.highlightFirst?"#fff":s.color}" stroke="${s.color}" stroke-width="2"><title>${labels[i]}: ${Math.round(s.vals[i])}°</title></circle>`; });
+  });
+  return svg+`</svg>`;
+}
+function barChart(vals,labels,color){
+  const W=800,H=170,pl=40,pr=18,pt=14,pb=28,n=vals.length,bw=(W-pl-pr)/n;
+  let svg=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Rain probability chart">`;
+  [0,50,100].forEach(v=>{const yy=pt+(1-v/100)*(H-pt-pb);svg+=`<line x1="${pl}" x2="${W-pr}" y1="${yy}" y2="${yy}" stroke="var(--chartgrid)" stroke-dasharray="4 5"/><text x="${pl-8}" y="${yy+4}" text-anchor="end">${v}%</text>`;});
+  const step=Math.ceil(n/8);
+  vals.forEach((v,i)=>{const h=(v/100)*(H-pt-pb),xx=pl+i*bw+bw*.2;
+    svg+=`<rect x="${xx}" y="${H-pb-h}" width="${bw*.6}" height="${Math.max(h,2)}" rx="4" fill="${color}" opacity=".85"><title>${labels[i]}: ${v}%</title></rect>`;
+    if(i%step===0) svg+=`<text x="${xx+bw*.3}" y="${H-8}" text-anchor="middle">${labels[i]}</text>`;});
+  return svg+`</svg>`;
+}
+
+/* ============ RENDER SCREENS ============ */
+const ICO={hum:"💧",wind:"🌬️",uv:"☀️",vis:"👁️",rise:"🌅",set:"🌇",press:"🧭",aqi:"🍃",dew:"🌡️",cloud:"☁️",feel:"🔥"};
+function stat(i,l,v,sub){return `<div class="card stat"><div class="si">${i}</div><div><span class="lbl">${l}</span><b>${v}</b><small>${sub||""}</small></div></div>`;}
+function weekRow(d,min,max){
+  const l=(conv(d.lo)-conv(min))/(conv(max)-conv(min))*100, w=(conv(d.hi)-conv(d.lo))/(conv(max)-conv(min))*100;
+  return `<div class="row"><span class="d">${d.name}</span>${icon(d.cond,false,34)}
+    <div><div class="rangeLbl"><span>${T(d.lo)}</span><span>${T(d.hi)}</span></div><div class="range"><i style="left:${l}%;width:${Math.max(w,6)}%"></i></div></div>
+    <span class="rn">💧${d.rain}%</span></div>`;
+}
+function sunArc(c){
+  const n=cityNow(c), now=n.h*60+n.m, a=mins(c.rise), b=mins(c.set), day=now>=a&&now<=b;
+  const f=clamp((now-a)/(b-a),0,1), x=110-90*Math.cos(Math.PI*f), y=100-90*Math.sin(Math.PI*f);
+  return `<svg viewBox="0 0 220 120" style="width:100%;max-width:300px;display:block;margin:auto" role="img" aria-label="Sun position">
+    <path d="M20 100A90 90 0 0 1 200 100" fill="none" stroke="var(--chartgrid)" stroke-width="3" stroke-dasharray="5 6"/>
+    <line x1="10" y1="100" x2="210" y2="100" stroke="var(--chartgrid)"/>
+    ${day?`<circle cx="${x}" cy="${y}" r="9" fill="#ffd45a"/><circle cx="${x}" cy="${y}" r="15" fill="#ffd45a" opacity=".25"/>`:`<text x="110" y="70" text-anchor="middle" fill="var(--muted)" font-size="13">🌙 Sun is down</text>`}
+    <text x="20" y="116" fill="var(--muted)" font-size="11" text-anchor="middle">${c.rise}</text>
+    <text x="200" y="116" fill="var(--muted)" font-size="11" text-anchor="middle">${c.set}</text></svg>`;
+}
+function dateStr(c){ return cityNow(c).d.toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long",year:"numeric",timeZone:"UTC"}); }
+function timeStr(c){ const n=cityNow(c); return pad(n.h)+":"+pad(n.m)+":"+pad(n.d.getUTCSeconds()); }
+
+function renderHome(){
+  const name=state.city,c=CITIES[name],cur=current(c),hrs=hourly(c),days=daily(c);
+  const mn=Math.min(...days.map(d=>d.lo)),mx=Math.max(...days.map(d=>d.hi));
+  const [uvL,uvC]=uvLevel(c.uv);
+  $("#s-home").innerHTML=`
+  <h2 class="title">Weather Dashboard</h2><p class="sub">Current conditions and forecast for ${name}</p>
+  <div class="hero">
+    <div class="card heroCard">
+      <div><div class="loc">📍 ${name}, ${c.country}</div>
+        <div class="meta">${dateStr(c)} · <span id="clock">${timeStr(c)}</span> local time</div></div>
+      <div class="heroMain">
+        <div><div class="bigTemp">${T(cur.t)}${state.unit}</div><div class="cond">${condName(cur.cond,cur.night)}</div>
+          <div class="hl">↑ ${T(cur.hi)} &nbsp; ↓ ${T(cur.lo)} &nbsp;·&nbsp; Feels like ${T(cur.feels)}</div></div>
+        <div class="floaty">${icon(cur.cond,cur.night,130)}</div>
+      </div>
+    </div>
+    <div class="stats">
+      ${stat(ICO.hum,"Humidity",c.hum+"%",`<div class="bar"><i style="width:${c.hum}%"></i></div>`)}
+      ${stat(ICO.wind,"Wind",WS(c.wind),"Moderate breeze")}
+      ${stat(ICO.uv,"UV Index",c.uv,`<span style="color:${uvC}">${uvL}</span>`)}
+      ${stat(ICO.vis,"Visibility",VS(c.vis),c.vis<5?"Reduced":"Good")}
+      ${stat(ICO.rise,"Sunrise",c.rise,"Morning")}
+      ${stat(ICO.set,"Sunset",c.set,"Evening")}
+    </div>
+  </div>
+  <div class="card"><h3>Next 24 hours <small>scroll →</small></h3>
+    <div class="strip">${hrs.map((h,i)=>`<div class="hc ${i===0?"now":""}"><div class="h">${h.label}</div>${icon(h.cond,h.night,38)}<b>${T(h.temp)}</b><div class="r">💧${h.rain}%</div></div>`).join("")}</div></div>
+  <div class="two">
+    <div class="card"><h3>Temperature trend <small>next 24 hours (°${state.unit})</small></h3>
+      <div class="chartWrap">${chart([{vals:hrs.map(h=>conv(h.temp)),color:"#5ac8fa",area:true}],hrs.map(h=>h.label),{highlightFirst:true,label:"24 hour temperature chart"})}</div></div>
+    <div class="card"><h3>Sun position <small>${c.rise} – ${c.set}</small></h3>${sunArc(c)}
+      <p class="note" style="text-align:center">Pressure ${c.press} hPa · Air quality: ${c.aqi}</p></div>
+  </div>
+  <div class="card" style="margin-top:16px"><h3>7-day outlook <button class="btn ghost" data-go="weekly" style="padding:5px 12px;font-size:.8rem">Full forecast →</button></h3>
+    ${days.map(d=>weekRow(d,mn,mx)).join("")}</div>`;
+}
+
+function renderHourly(){
+  const name=state.city,c=CITIES[name],hrs=hourly(c);
+  const hi=hrs.reduce((a,b)=>b.temp>a.temp?b:a), lo=hrs.reduce((a,b)=>b.temp<a.temp?b:a), wet=hrs.reduce((a,b)=>b.rain>a.rain?b:a);
+  $("#s-hourly").innerHTML=`
+  <h2 class="title">Hourly Forecast</h2><p class="sub">The next 24 hours in ${name} (local time)</p>
+  <div class="summary">
+    <div class="card"><span>Warmest hour</span><b>${T(hi.temp)} · ${hi.label}</b></div>
+    <div class="card"><span>Coolest hour</span><b>${T(lo.temp)} · ${lo.label}</b></div>
+    <div class="card"><span>Highest rain chance</span><b>💧${wet.rain}% · ${wet.label}</b></div>
+    <div class="card"><span>Average wind</span><b>${WS(hrs.reduce((a,b)=>a+b.wind,0)/24)}</b></div>
+  </div>
+  <div class="card"><h3>Hourly timeline <small>scroll →</small></h3>
+    <div class="strip">${hrs.map((h,i)=>`<div class="hc big ${i===0?"now":""}"><div class="h">${h.label}</div>${icon(h.cond,h.night,46)}<b>${T(h.temp)}</b><div class="r">💧 ${h.rain}%</div><div class="w">🌬️ ${WS(h.wind)}</div></div>`).join("")}</div></div>
+  <div class="card" style="margin-top:16px"><h3>Temperature by hour <small>°${state.unit}</small></h3>
+    <div class="chartWrap">${chart([{vals:hrs.map(h=>conv(h.temp)),color:"#a78bfa",area:true}],hrs.map(h=>h.label),{highlightFirst:true,h:280,label:"Hourly temperature chart"})}</div></div>
+  <div class="card" style="margin-top:16px"><h3>Rain probability by hour</h3>
+    <div class="chartWrap">${barChart(hrs.map(h=>h.rain),hrs.map(h=>h.label),"#5ac8fa")}</div></div>`;
+}
+
+function renderWeekly(){
+  const name=state.city,c=CITIES[name],days=daily(c);
+  const mn=Math.min(...days.map(d=>d.lo)),mx=Math.max(...days.map(d=>d.hi));
+  $("#s-weekly").innerHTML=`
+  <h2 class="title">7-Day Forecast</h2><p class="sub">A week of weather for ${name}</p>
+  <div class="card" style="margin-bottom:16px"><h3>Weekly temperature range <small>°${state.unit}</small></h3>
+    <div class="chartWrap">${chart([{vals:days.map(d=>conv(d.hi)),color:"#fb923c",area:true},{vals:days.map(d=>conv(d.lo)),color:"#5ac8fa",area:true}],days.map(d=>d.name),{maxLabels:7,label:"Weekly high and low chart"})}</div>
+    <div class="legend"><span><i style="background:#fb923c"></i>Daily high</span><span><i style="background:#5ac8fa"></i>Daily low</span></div></div>
+  <div class="grid dayGrid">${days.map(d=>{
+    const l=(conv(d.lo)-conv(mn))/(conv(mx)-conv(mn))*100,w=(conv(d.hi)-conv(d.lo))/(conv(mx)-conv(mn))*100;
+    return `<div class="card day"><div class="dn">${d.name}</div><div class="dd">${d.date}</div>${icon(d.cond,false,64)}
+      <div class="cn">${CONDS[d.cond]}</div><div class="temps"><b>${T(d.hi)}</b> <span>/ ${T(d.lo)}</span></div>
+      <div class="range"><i style="left:${l}%;width:${Math.max(w,8)}%"></i></div>
+      <div class="mini"><span>💧 ${d.rain}%</span><span>🌬️ ${WS(d.wind)}</span></div></div>`;}).join("")}</div>`;
+}
+
+function renderMap(){
+  const name=state.city,c=CITIES[name],cur=current(c),[uvL,uvC]=uvLevel(c.uv);
+  const dew=cur.t-(100-c.hum)/5;
+  const L=[["rain","🌧️ Rain radar"],["clouds","☁️ Cloud cover"],["temp","🌡️ Temperature"]];
+  $("#s-map").innerHTML=`
+  <h2 class="title">Weather Map & Insights</h2><p class="sub">Simulated radar for ${name} <span class="pill">SIMULATED DEMO</span></p>
+  <div class="mapgrid">
+    <div class="card"><div class="layers">${L.map(l=>`<button class="chip ${state.layer===l[0]?"active":""}" data-layer="${l[0]}">${l[1]}</button>`).join("")}</div>
+      <canvas id="radar" aria-label="Simulated weather radar map"></canvas>
+      <p class="note">⚠️ This is a schematic, animated simulation made with the HTML canvas. Positions are not geographic and the data is demo data, not a live radar. Click a city pin to switch city.</p></div>
+    <div class="insights">
+      ${stat(ICO.uv,"UV Level",c.uv+" · "+uvL,`<span style="color:${uvC}">${c.uv>=6?"Use sunscreen":"Safe for most people"}</span>`)}
+      ${stat(ICO.hum,"Humidity",c.hum+"%",c.hum>70?"Humid":c.hum<40?"Dry":"Comfortable")}
+      ${stat(ICO.wind,"Wind",WS(c.wind),"Direction: SW")}
+      ${stat(ICO.press,"Pressure",c.press+" hPa",c.press<1010?"Low – unsettled":"Stable")}
+      ${stat(ICO.cloud,"Cloud cover",CLOUD[c.pat[0]]+"%",CONDS[c.pat[0]])}
+      ${stat(ICO.dew,"Dew point",T(dew),"Moisture level")}
+      ${stat(ICO.vis,"Visibility",VS(c.vis),c.vis<5?"Reduced":"Good")}
+      ${stat(ICO.aqi,"Air quality",c.aqi,"Demo value")}
+    </div>
+  </div>
+  <div class="card" style="margin-top:16px"><h3>Atmospheric summary</h3>
+    <p style="line-height:1.7;color:var(--muted)">${name} is currently <b style="color:var(--text)">${condName(cur.cond,cur.night).toLowerCase()}</b> at ${T(cur.t)}${state.unit}, feeling like ${T(cur.feels)}. Humidity is ${c.hum}% with winds of ${WS(c.wind)}. The UV index is ${c.uv} (${uvL.toLowerCase()}) and pressure is ${c.press} hPa. Rain chance today: ${c.rainD[0]}%.</p></div>`;
+  startMap();
+}
+
+function renderSettings(){
+  const N=state.notif;
+  $("#s-settings").innerHTML=`
+  <h2 class="title">Settings</h2><p class="sub">Personalise SkyCast – changes apply instantly</p>
+  <div class="sets">
+    <div class="card"><h3>👤 Profile</h3>
+      <div class="prof"><div class="avatar">SL</div><div><b style="font-size:1.1rem">Sahil Lashari</b><br><span style="color:var(--muted);font-size:.85rem">BS Computer Science · BSCS 2K24</span><br><span style="color:var(--muted);font-size:.85rem">HCI Individual Semester Project</span></div></div></div>
+    <div class="card"><h3>🎛️ Display</h3>
+      <div class="setrow"><div><b>Temperature unit</b><small>Also converts wind speed & visibility</small></div>
+        <div class="seg"><button data-unit="C" class="${state.unit==="C"?"on":""}">°C</button><button data-unit="F" class="${state.unit==="F"?"on":""}">°F</button></div></div>
+      <div class="setrow"><div><b>Dark theme</b><small>Switch between dark and light mode</small></div>
+        <button class="sw ${state.theme==="dark"?"on":""}" id="swTheme" role="switch" aria-checked="${state.theme==="dark"}" aria-label="Dark theme"></button></div></div>
+    <div class="card"><h3>🔔 Notification preferences</h3>
+      <div class="setrow"><div><b>Daily summary</b><small>Morning weather overview</small></div><button class="sw ${N.daily?"on":""}" data-notif="daily" role="switch" aria-checked="${N.daily}" aria-label="Daily summary"></button></div>
+      <div class="setrow"><div><b>Rain alerts</b><small>Notify when rain is expected</small></div><button class="sw ${N.rain?"on":""}" data-notif="rain" role="switch" aria-checked="${N.rain}" aria-label="Rain alerts"></button></div>
+      <div class="setrow"><div><b>Severe weather warnings</b><small>Storms, heat waves, etc.</small></div><button class="sw ${N.severe?"on":""}" data-notif="severe" role="switch" aria-checked="${N.severe}" aria-label="Severe weather warnings"></button></div>
+      <p class="note">Demo only: preferences are saved, but no real notifications are sent.</p></div>
+    <div class="card"><h3>📍 Location preference</h3>
+      <div class="setrow"><div><b>Default city</b><small>Shown when SkyCast starts</small></div>
+        <select id="defCity" aria-label="Default city">${CITY_NAMES.map(n=>`<option ${n===state.defaultCity?"selected":""}>${n}</option>`).join("")}</select></div>
+      <div class="setrow"><div><b>Reset settings</b><small>Restore all defaults</small></div><button class="btn ghost" id="resetBtn">Reset</button></div></div>
+    <div class="card"><h3>ℹ️ About SkyCast</h3>
+      <ul class="about"><li><b>Version:</b> 1.0 (Semester Project)</li><li><b>Course:</b> Human-Computer Interaction</li>
+        <li><b>Built with:</b> HTML, CSS, JavaScript</li><li><b>Data:</b> Simulated demo data – not live weather</li><li><b>Works offline:</b> No API key or internet needed</li></ul></div>
+  </div>`;
+}
+
+function safe(fn,id){ try{ fn(); }catch(e){ console.error(e); var el=$(id); if(el) el.innerHTML='<div class="card"><h3>⚠️ Could not load this screen</h3><p style="color:var(--bad)">'+String(e.message)+'</p></div>'; } }
+function render(){ safe(renderHome,"#s-home"); safe(renderHourly,"#s-hourly"); safe(renderWeekly,"#s-weekly"); safe(renderMap,"#s-map"); safe(renderSettings,"#s-settings"); try{ syncChrome(); }catch(e){ console.error(e); } }
+function syncChrome(){
+  document.documentElement.setAttribute("data-theme",state.theme);
+  $("#quickUnit").textContent="°"+state.unit; $("#quickTheme").textContent=state.theme==="dark"?"🌙":"☀️";
+  $("#chips").innerHTML=CITY_NAMES.map(n=>`<button class="chip ${n===state.city?"active":""}" data-city="${n}">${n}</button>`).join("");
+  $("#cityList").innerHTML=CITY_NAMES.map(n=>`<option value="${n}">`).join("");
+  $("#statusTxt").textContent=`Demo data · ${state.city} · updated ${state.updated||"just now"}`;
+}
+
+/* ============ SIMULATED RADAR (canvas) ============ */
+let raf=null;
+const blobs=[...Array(16)].map((_,i)=>({x:(i*.37)%1,y:(i*.61+.1)%1,r:.07+((i*7)%5)*.02,v:.4+(i%4)*.25,k:i}));
+function startMap(){ if(raf) cancelAnimationFrame(raf); raf=requestAnimationFrame(drawMap); }
+function drawMap(ts){
+  const cv=$("#radar"); if(!cv||state.screen!=="map"){raf=null;return;}
+  const dpr=window.devicePixelRatio||1, w=cv.clientWidth, h=cv.clientHeight;
+  if(cv.width!==Math.round(w*dpr)||cv.height!==Math.round(h*dpr)){cv.width=Math.round(w*dpr);cv.height=Math.round(h*dpr);}
+  const ctx=cv.getContext("2d"); ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,w,h);
+  const bg=ctx.createLinearGradient(0,0,w,h); bg.addColorStop(0,"#0a1a4a"); bg.addColorStop(1,"#112a66"); ctx.fillStyle=bg; ctx.fillRect(0,0,w,h);
+  ctx.strokeStyle="rgba(255,255,255,.07)"; ctx.lineWidth=1;
+  for(let i=1;i<10;i++){ctx.beginPath();ctx.moveTo(w*i/10,0);ctx.lineTo(w*i/10,h);ctx.stroke();ctx.beginPath();ctx.moveTo(0,h*i/10);ctx.lineTo(w,h*i/10);ctx.stroke();}
+  // schematic land masses
+  ctx.fillStyle="rgba(90,130,200,.22)";
+  [[.1,.5,.3,.3],[.4,.15,.25,.35],[.7,.1,.22,.25],[.78,.5,.2,.3],[.3,.8,.35,.15]].forEach(l=>{ctx.beginPath();ctx.ellipse(l[0]*w+l[2]*w/2,l[1]*h+l[3]*h/2,l[2]*w/2,l[3]*h/2,0,0,7);ctx.fill();});
+  const c=CITIES[state.city], t=ts/1000;
+  if(state.layer==="rain"){
+    const cnt=Math.min(16,3+Math.round(c.rainD[0]/6));
+    for(let i=0;i<cnt;i++){const b=blobs[i],x=((b.x+t*b.v*.02)%1.2-.1)*w,y=(b.y+.03*Math.sin(t*.5+b.k))*h,r=b.r*w;
+      const g=ctx.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,"rgba(250,204,21,.65)");g.addColorStop(.4,"rgba(74,222,128,.5)");g.addColorStop(1,"rgba(56,189,248,0)");
+      ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.fill();}
+  } else if(state.layer==="clouds"){
+    const cnt=Math.round(4+CLOUD[c.pat[0]]/10);
+    for(let i=0;i<Math.min(cnt,16);i++){const b=blobs[i],x=((b.x+t*b.v*.012)%1.3-.15)*w,y=b.y*h,r=b.r*w*1.7;
+      const g=ctx.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,"rgba(255,255,255,.5)");g.addColorStop(1,"rgba(255,255,255,0)");
+      ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.fill();}
+  } else {
+    const hot=cur=>cur>=22?"251,113,60":cur>=12?"251,191,36":"90,200,250";
+    CITY_NAMES.forEach(n=>{const cc=CITIES[n],p=cc.pos,col=hot(cc.base),g=ctx.createRadialGradient(p[0]*w,p[1]*h,0,p[0]*w,p[1]*h,w*.2);
+      g.addColorStop(0,`rgba(${col},.6)`);g.addColorStop(1,`rgba(${col},0)`);ctx.fillStyle=g;ctx.beginPath();ctx.arc(p[0]*w,p[1]*h,w*.2,0,7);ctx.fill();});
+  }
+  // city pins
+  CITY_NAMES.forEach(n=>{const cc=CITIES[n],x=cc.pos[0]*w,y=cc.pos[1]*h,sel=n===state.city;
+    if(sel){const pr=8+((t*12)%16);ctx.strokeStyle=`rgba(90,200,250,${1-(pr-8)/16})`;ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y,pr,0,7);ctx.stroke();}
+    ctx.fillStyle=sel?"#5ac8fa":"#fff";ctx.beginPath();ctx.arc(x,y,sel?6:4,0,7);ctx.fill();
+    ctx.font=(sel?"700 ":"500 ")+"12px Segoe UI, sans-serif";ctx.fillStyle="#fff";ctx.fillText(n+" "+T(tempAt(cc,cityNow(cc).h)),x+10,y+4);});
+  // radar sweep
+  if(state.layer==="rain"&&ctx.createConicGradient){const p=c.pos,cx=p[0]*w,cy=p[1]*h,g=ctx.createConicGradient(t*1.2,cx,cy);
+    g.addColorStop(0,"rgba(90,200,250,.4)");g.addColorStop(.14,"rgba(90,200,250,0)");g.addColorStop(1,"rgba(90,200,250,0)");
+    ctx.fillStyle=g;ctx.beginPath();ctx.arc(cx,cy,Math.max(w,h),0,7);ctx.fill();}
+  // legend
+  ctx.font="600 11px Segoe UI, sans-serif";ctx.fillStyle="rgba(255,255,255,.85)";
+  ctx.fillText("SIMULATED · "+(state.layer==="rain"?"light → heavy rain":state.layer==="clouds"?"cloud density":"cool → warm zones"),12,h-12);
+  raf=requestAnimationFrame(drawMap);
+}
+
+/* ============ ACTIONS ============ */
+function toast(msg,type=""){ const t=document.createElement("div"); t.className="toast "+type; t.textContent=msg; $("#toasts").appendChild(t); setTimeout(()=>t.remove(),2900); }
+function go(screen){
+  state.screen=screen;
+  $$(".screen").forEach(s=>s.classList.toggle("active",s.id==="s-"+screen));
+  $$("#nav button").forEach(b=>b.classList.toggle("active",b.dataset.screen===screen));
+  window.scrollTo({top:0,behavior:"smooth"});
+  if(screen==="map") startMap();
+}
+function setCity(name,silent){
+  if(!CITIES[name]) return;
+  state.city=name; save();
+  $("#loadbar").classList.add("on"); $("#content").classList.add("busy"); $("#status").classList.add("busy"); $("#statusTxt").textContent="Loading "+name+"…";
+  setTimeout(()=>{
+    const n=cityNow(CITIES[name]); state.updated=pad(n.h)+":"+pad(n.m);
+    render(); $("#loadbar").classList.remove("on"); $("#content").classList.remove("busy"); $("#status").classList.remove("busy");
+    if(!silent) toast("Showing weather for "+name,"ok");
+  },650);
+}
+function setUnit(u){ if(state.unit===u) return; state.unit=u; save(); render(); toast("Units changed to "+(u==="C"?"Celsius (°C, km/h)":"Fahrenheit (°F, mph)"),"ok"); }
+function setTheme(t){ state.theme=t; save(); render(); toast((t==="dark"?"Dark":"Light")+" theme enabled","ok"); }
+
+/* ============ EVENTS ============ */
+$("#nav").addEventListener("click",e=>{const b=e.target.closest("button[data-screen]"); if(b) go(b.dataset.screen);});
+$("#chips").addEventListener("click",e=>{const b=e.target.closest("[data-city]"); if(b&&b.dataset.city!==state.city) setCity(b.dataset.city);});
+$("#searchForm").addEventListener("submit",e=>{
+  e.preventDefault(); const q=$("#q").value.trim().toLowerCase();
+  if(!q){toast("Please type a city name first","err");return;}
+  const m=CITY_NAMES.find(n=>n.toLowerCase()===q)||CITY_NAMES.find(n=>n.toLowerCase().startsWith(q))||CITY_NAMES.find(n=>n.toLowerCase().includes(q));
+  if(m){ $("#q").value=""; $("#q").blur(); setCity(m); }
+  else toast(`"${$("#q").value.trim()}" is not in the demo dataset. Try: ${CITY_NAMES.join(", ")}`,"err");
+});
+$("#quickUnit").addEventListener("click",()=>setUnit(state.unit==="C"?"F":"C"));
+$("#quickTheme").addEventListener("click",()=>setTheme(state.theme==="dark"?"light":"dark"));
+$("#content").addEventListener("click",e=>{
+  const g=e.target.closest("[data-go]"); if(g) return go(g.dataset.go);
+  const u=e.target.closest("[data-unit]"); if(u) return setUnit(u.dataset.unit);
+  const l=e.target.closest("[data-layer]"); if(l){ state.layer=l.dataset.layer; $$("[data-layer]").forEach(b=>b.classList.toggle("active",b===l)); toast("Layer: "+l.textContent.trim()); return; }
+  if(e.target.closest("#swTheme")) return setTheme(state.theme==="dark"?"light":"dark");
+  const nb=e.target.closest("[data-notif]"); if(nb){ const k=nb.dataset.notif; state.notif[k]=!state.notif[k]; save();
+    nb.classList.toggle("on",state.notif[k]); nb.setAttribute("aria-checked",state.notif[k]); toast((k==="daily"?"Daily summary":k==="rain"?"Rain alerts":"Severe weather warnings")+(state.notif[k]?" turned on":" turned off"),"ok"); return; }
+  if(e.target.closest("#resetBtn")){ state.unit="C"; state.theme="dark"; state.notif={daily:true,rain:true,severe:false}; state.defaultCity="Karachi"; save(); render(); toast("Settings reset to defaults","ok"); setCity("Karachi",true); }
+});
+$("#content").addEventListener("change",e=>{ if(e.target.id==="defCity"){ state.defaultCity=e.target.value; save(); toast("Default city set to "+state.defaultCity,"ok"); } });
+$("#content").addEventListener("click",e=>{
+  if(e.target.id!=="radar") return; const cv=e.target, r=cv.getBoundingClientRect(), x=(e.clientX-r.left)/r.width, y=(e.clientY-r.top)/r.height;
+  const hit=CITY_NAMES.find(n=>Math.hypot((CITIES[n].pos[0]-x)*r.width,(CITIES[n].pos[1]-y)*r.height)<22);
+  if(hit&&hit!==state.city) setCity(hit);
+});
+document.addEventListener("keydown",e=>{ if(e.key==="/"&&document.activeElement.tagName!=="INPUT"&&document.activeElement.tagName!=="SELECT"){e.preventDefault();$("#q").focus();} });
+setInterval(()=>{ const el=$("#clock"); if(el) el.textContent=timeStr(CITIES[state.city]); },1000);
+
+/* ============ START ============ */
+(function init(){ const n=cityNow(CITIES[state.city]); state.updated=pad(n.h)+":"+pad(n.m); render(); setTimeout(()=>toast("Welcome to SkyCast – showing demo weather data"),400); })();
+</script>
+</body>
+</html>
